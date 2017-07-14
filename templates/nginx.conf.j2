@@ -1,0 +1,53 @@
+# {{ ansible_managed }}
+user	{{ www_user }};
+worker_processes	{{ nginx_processes }};
+
+error_log	{{ nginx_log_dir }}/nginx-error.log info;
+{% if syslog_server %}
+error_log syslog:server={{ syslog_server }},facility=local5,tag=nginx;
+{% endif %}
+
+include modules.d/*.conf;
+
+events {
+    worker_connections  1024;
+}
+
+http {
+	include	mime.types;
+	default_type	application/octet-stream;
+
+	log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+                      '$status $body_bytes_sent "$http_referer" '
+                      '"$http_user_agent" "$http_x_forwarded_for"';
+
+	{% if syslog_server %}
+	access_log syslog:server={{ syslog_server }},facility=notice combined;
+	{% else %}
+	access_log	{{ nginx_log_dir }}/access.log combined;
+	{% endif %}
+
+	sendfile_max_chunk 512k;
+	server_tokens	off;
+	aio on;
+	sendfile	on;
+	tcp_nopush	on;
+
+	keepalive_timeout	65;
+
+	# "zone" pour le traitement des progressions d'uploads
+	upload_progress uploads 1m;
+
+	log_not_found off;
+
+	gzip on;
+	gzip_min_length	1100;
+	gzip_buffers	4 8k;
+	gzip_types	text/plain text/css application/javascript;
+	types {
+		text/plain	log;
+	}
+	include conf.d/*.conf;
+
+	include servers.d/*.conf;
+}
