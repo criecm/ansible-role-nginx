@@ -58,7 +58,7 @@
     src: '{{ site.rootsrc }}/'
     mode: a=rX,u+w
     owner: root
-  when: '"rootsrc" in site and site.rootsrc'
+  when: '"rootsrc" in site and site.rootsrc is defined and site.rootsrc != ""'
 
 - name: stat rootdir
   stat:
