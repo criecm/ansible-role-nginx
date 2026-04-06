@@ -65,26 +65,14 @@ server {
 {%     endif %}
 {%   endfor %}
 # hastls.n={{ hastls.n }} site.http2={{ site.http2 }} site.http3={{ site.http3 }}
-{%   if hastls.n > 0 %}
-{%     if site.http2 | bool %}
-	http2 on;
-{%     endif %}
-{%     if site.http3 | bool %}
-	http3 on;
-	add_header Alt-Svc 'h3="443"; ma=86400';
-{%     endif %}
-{%   endif %}
 {% else %}
 # site.listen_ips={{ site.listen_ips }}
 {%   if site.listen_ips | count > 0 %}
 {%     for ip in site.listen_ips %}
 	listen	{{ ip }}:{{ siteport }}{% if site.tls_cert %} ssl{% endif %};
-{%     if site.http2 | bool %}
-	http2 on;
-{%     endif %}
 {%     if site.http3 | bool %}
 	listen {{ ip }}:{{ siteport }} quic{{ http3_reuseport }};
-	http3 on;
+#	http3 on;
 	add_header Alt-Svc 'h3=":443"; ma=86400';
 {%     endif %}
 {%       if not site.tls_only and siteport != "80" %}
@@ -98,7 +86,24 @@ server {
 {%     endif %}
 {%   endif %}
 {% endif %}
+
+{%   if site.http2 | bool %}
+      http2 on;
+{%   endif %}
+{%   if site.http3 | bool %}
+      http3 on;
+      add_header Alt-Svc 'h3="443"; ma=86400';
+{%   endif %}
+
 {% if site.tls_cert %}
+{%   if site.http2 | bool %}
+      http2 on;
+{%   endif %}
+{%   if site.http3 | bool %}
+      http3 on;
+      add_header Alt-Svc 'h3="443"; ma=86400';
+{%   endif %}
+
 	ssl_certificate {{ tls_certs_dir }}/{{ site.cert_name }}.crt;
 	ssl_certificate_key {{ tls_certs_dir }}/private/{{ site.cert_name }}.key;
 {%   if site.x509_stapling_chain %}
