@@ -59,6 +59,8 @@
 - name: fact has_status
   set_fact:
     has_status: '{% if nginx_v.stderr is search("--with-http_stub_status_module") %}True{% else %}False{% endif %}'
+    has_sticky_ng: '{% if nginx_v.stderr is search("nginx-sticky-module-ng") %}True{% else %}False{% endif %}'
+    nginx_version: '{{ nginx_v.stderr_lines | select("match","nginx version:") | first | regex_replace("^.*/","") }}'
 
 - name: reverse-proxy
   block:

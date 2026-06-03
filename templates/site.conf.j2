@@ -11,7 +11,7 @@ upstream {{ upstream }} {
 {%     endfor %}
 {%     if site.backends | count > 1 %}
 {%       if "ngx_http_sticky_module" in nginx_modules %}
-	sticky name={{ site.id }}LBID{% if site.tls_only %} secure{% endif %};
+	sticky cookie {{ site.id }}BID expires=1h domain=.{{ site.name }} path=/{% if site.tls_only %} secure{% endif %};
 {%       else %}
         ip_hash;
 {%       endif %}

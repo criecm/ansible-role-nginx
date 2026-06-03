@@ -18,5 +18,3 @@
   when: 'module in lsmods.stdout_lines'
   notify: restart nginx
   tags: nginx, config
-
-
