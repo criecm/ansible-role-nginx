@@ -1,25 +1,27 @@
 ---
 
 - name: get current nginx config
-  shell: "nginx -qTV || echo '' | grep -Ev '^[[:space:]]*(#.*)?$'"
+  ansible.builtin.shell: "nginx -qTV || echo '' | grep -Ev '^[[:space:]]*(#.*)?$'"
   register: curconf
-  failed_when: False
+  changed_when: false
+  check_mode: false
+  failed_when: false
 
 - name: nginx facts
-  set_fact:
-    has_http2: '{% if curconf.stderr is search("--with-http_v2_module") %}True{% else %}False{% endif %}'
-    has_http3: '{% if curconf.stderr is search("--with-http_v3_module") %}True{% else %}False{% endif %}'
+  ansible.builtin.set_fact:
+    has_http2: '{% if curconf.stderr is search("--with-http_v2_module") %}{{ true }}{% else %}{{ false }}{% endif %}'
+    has_http3: '{% if curconf.stderr is search("--with-http_v3_module") %}{{ true }}{% else %}{{ false }}{% endif %}'
 
 - name: site vars
-  include_vars: site.yml
+  ansible.builtin.include_vars: site.yml
 
 - name: site fact
-  set_fact:
+  ansible.builtin.set_fact:
     site: '{{ default_site | combine(onesite) }}'
     http3_reuseport: '{% if curconf.stdout is search("listen + [\[\]0-9a-fA-F\.:]*"+siteport+" *quic +reuseport") %}{% else %} reuseport{% endif %}'
 
 - name: site includes
-  template:
+  ansible.builtin.template:
     dest: '{{ nginx_etcdir }}/{{ item | regex_replace("^.* ","") | basename | regex_replace("\.j2$","") }}'
     src: '{{ lookup("first_found", include_locations | product(["/"+item | regex_replace(" .*$","") ]) | map("join") | list) }}'
   with_items: '{{ site.nginx_includes }}'
@@ -27,7 +29,7 @@
   notify: reload nginx
 
 - name: site precludes
-  template:
+  ansible.builtin.template:
     dest: '{{ nginx_etcdir }}/{{ item | regex_replace("^.* ","") | basename | regex_replace("\.j2$","") }}'
     src: '{{ lookup("first_found", include_locations | product(["/"+item | regex_replace(" .*$","") ]) | map("join") | list) }}'
   with_items: '{{ site.nginx_precludes }}'
@@ -35,7 +37,7 @@
   notify: reload nginx
 
 - name: conf includes
-  copy:
+  ansible.builtin.copy:
     src: '{{ item }}'
     dest: '{{ nginx_etcdir }}/conf.d/{{ item | regex_replace(".*/([^/]+)$","\1") }}'
     mode: '0644'
@@ -44,7 +46,7 @@
   notify: reload nginx
 
 - name: conf includes (templates)
-  template:
+  ansible.builtin.template:
     src: '{{ item }}'
     dest: '{{ nginx_etcdir }}/conf.d/{{ item | regex_replace(".*/([^/]+)\.j2$","\1") }}'
     mode: '0644'
@@ -53,7 +55,7 @@
   notify: reload nginx
 
 - name: root dir
-  copy:
+  ansible.builtin.copy:
     dest: '{{ site.rootdir }}/'
     src: '{{ site.rootsrc }}/'
     mode: a=rX,u+w
@@ -61,12 +63,12 @@
   when: '"rootsrc" in site and site.rootsrc is defined and site.rootsrc != ""'
 
 - name: stat rootdir
-  stat:
+  ansible.builtin.stat:
     path: '{{ site.rootdir }}'
   register: statrootdir
 
 - name: mkdir root dir
-  file:
+  ansible.builtin.file:
     dest: '{{ site.rootdir }}'
     state: directory
     mode: '0755'
@@ -76,26 +78,26 @@
 - name: x509 certs
   block:
     - name: mkdir
-      file:
+      ansible.builtin.file:
         path: '{{ tls_certs_dir }}/private'
         state: directory
         mode: '0711'
     - name: x509 cert
-      copy:
+      ansible.builtin.copy:
         src: '{{ site.tls_cert }}'
         dest: '{{ tls_certs_dir }}/{{ site.cert_name }}.crt'
         mode: '0400'
         force: no
       notify: reload nginx
     - name: x509 key
-      copy:
+      ansible.builtin.copy:
         src: '{{ site.tls_key }}'
         dest: '{{ tls_certs_dir }}/private/{{ site.cert_name }}.key'
         mode: '0400'
         force: no
       notify: reload nginx
     - name: x509 chain
-      copy:
+      ansible.builtin.copy:
         src: '{{ site.x509_stapling_chain }}'
         dest: '{{ tls_certs_dir }}/{{ site.x509_stapling_chain | basename }}'
         mode: '0644'
@@ -104,7 +106,7 @@
   when: '"tls_cert" in site and site.tls_cert != ""'
 
 - name: site config
-  template:
+  ansible.builtin.template:
     dest: '{{ nginx_etcdir }}/servers.d/{{ site.id }}.conf'
     src: '{{ lookup("first_found", siteconf_locations) }}'
   notify: reload nginx
@@ -112,18 +114,18 @@
 - name: monitoring
   block:
     - name: create to_monitor entry
-      set_fact:
+      ansible.builtin.set_fact:
         tmpmon:
           - proto: '{% if site.tls_cert or (proxified_by | count > 0) %}https{% else %}http{% endif %}'
             name: '{{ site.name }}'
             path: '{{ site.fcgi_status_path }}'
             type: fcgi-status
     - name: fcgi-status to_monitor
-      set_fact:
+      ansible.builtin.set_fact:
         to_monitor: '{{ to_monitor | default([]) | union(tmpmon) }}'
         cacheable: yes
   when: '"fcgi_status_path" in site and site.fcgi_status_path != ""'
 
 - name: nginx_sites_done fact
-  set_fact:
-    nginx_sites_done: True
+  ansible.builtin.set_fact:
+    nginx_sites_done: true

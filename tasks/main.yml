@@ -1,6 +1,6 @@
 ---
 - name: OS vars
-  include_vars: '{{ item }}'
+  ansible.builtin.include_vars: '{{ item }}'
   with_first_found:
     - '{{ ansible_os_family }}.yml'
   tags: vars, nginx
@@ -8,7 +8,7 @@
 - name: default confs
   block:
     - name: servers.d dir
-      file:
+      ansible.builtin.file:
         dest: '{{ nginx_etcdir }}/{{ item }}'
         state: directory
         mode: '0750'
@@ -19,30 +19,30 @@
         - conf.d
       notify: restart nginx
     - name: default config
-      template:
+      ansible.builtin.template:
         src: nginx.conf.j2
         dest: '{{ nginx_etcdir }}/nginx.conf'
       notify: restart nginx
     - name: default config parts
-      template:
+      ansible.builtin.template:
         src: '{{ item }}.j2'
         dest: '{{ nginx_etcdir }}/{{ item }}'
         force: no
       with_items:
         - servers.d/0default.conf
       notify: restart nginx
-      when: nginx_default_site | default(False) | bool
+      when: nginx_default_site | default("default") == "default"
   tags: nginx, config
 
 - name: OS tasks
-  include_tasks: '{{ item }}'
+  ansible.builtin.include_tasks: '{{ item }}'
   with_first_found:
     - 'install-{{ ansible_os_family }}.yml'
   tags: vars, nginx
 
 # logs dir
 - name: log dir
-  file:
+  ansible.builtin.file:
     dest: '{{ nginx_log_dir }}'
     mode: '0755'
     state: directory
@@ -50,22 +50,22 @@
   tags: nginx, config
 
 - name: get nginx config
-  command: 'nginx -V'
-  failed_when: False
-  check_mode: False
-  changed_when: False
+  ansible.builtin.command: 'nginx -V'
+  failed_when: false
+  check_mode: false
+  changed_when: false
   register: nginx_v
 
 - name: fact has_status
-  set_fact:
-    has_status: '{% if nginx_v.stderr is search("--with-http_stub_status_module") %}True{% else %}False{% endif %}'
-    has_sticky_ng: '{% if nginx_v.stderr is search("nginx-sticky-module-ng") %}True{% else %}False{% endif %}'
+  ansible.builtin.set_fact:
+    has_status: '{% if nginx_v.stderr is search("--with-http_stub_status_module") %}{{ true }}{% else %}{{ false }}{% endif %}'
+    has_sticky_ng: '{% if nginx_v.stderr is search("nginx-sticky-module-ng") %}{{ true }}{% else %}{{ false }}{% endif %}'
     nginx_version: '{{ nginx_v.stderr_lines | select("match","nginx version:") | first | regex_replace("^.*/","") }}'
 
 - name: reverse-proxy
   block:
     - name: config reverse-proxy
-      lineinfile:
+      ansible.builtin.lineinfile:
         dest: '{{ nginx_etcdir }}/fastcgi_params'
         line: '{{ item.line }}'
         regexp: '{{ item.regexp }}'
@@ -76,7 +76,7 @@
         - { line: 'fastcgi_param  SERVER_PORT $myport if_not_empty;', regexp: '^fastcgi_param\s+SERVER_PORT' }
       notify: restart nginx
     - name: realip.conf
-      template:
+      ansible.builtin.template:
         src: realip.conf.j2
         dest: '{{ nginx_etcdir }}/conf.d/realip.conf'
       notify: restart nginx
@@ -84,13 +84,13 @@
   tags: nginx, config
 
 - name: OS modules
-  include_tasks: '{{ item }}'
+  ansible.builtin.include_tasks: '{{ item }}'
   with_first_found:
     - 'mods-{{ ansible_os_family }}.yml'
   tags: nginx,config
 
 - name: modules.d/ confs
-  template:
+  ansible.builtin.template:
     src: '{{ item }}'
     dest: '{{ nginx_etcdir }}/modules.d/{{ item | basename | regex_replace("\.j2$","") }}'
     mode: '0640'
@@ -100,7 +100,7 @@
   tags: nginx, config
 
 - name: nginx_includes
-  template:
+  ansible.builtin.template:
     src: '{{ item }}'
     dest: '{{ nginx_etcdir }}/conf.d/{{ item | basename | regex_replace("\.j2$","") }}'
     mode: '0640'
@@ -110,7 +110,7 @@
   tags: nginx, config
 
 - name: nginx_files
-  template:
+  ansible.builtin.template:
     src: '{{ item }}'
     dest: '{{ nginx_etcdir }}/{{ item | basename | regex_replace("\.j2$","") }}'
     mode: '0640'
@@ -123,19 +123,19 @@
 - name: x509 - global part
   block:
     - name: x509 global config
-      template:
+      ansible.builtin.template:
         src: tls.conf.j2
         dest: '{{ nginx_etcdir }}/conf.d/tls.conf'
         mode: '0644'
     - name: check dhparam
-      stat:
+      ansible.builtin.stat:
         path: /etc/ssl/dhparam4096.pem
       register: stat_dh
     - name: create dhparam
-      command: 'openssl dhparam -out /etc/ssl/dhparam4096.pem 4096'
+      ansible.builtin.command: 'openssl dhparam -out /etc/ssl/dhparam4096.pem 4096'
       when: not stat_dh.stat.exists
     - name: mkdir private
-      file:
+      ansible.builtin.file:
         state: directory
         mode: '0700'
         path: '{{ tls_certs_dir }}/private'
@@ -143,22 +143,22 @@
   tags: nginx, config
 
 - name: enable nginx
-  service:
+  ansible.builtin.service:
     name: nginx
     enabled: yes
     state: started
   tags: nginx, rc
 
 - name: sites
-  include_tasks: site.yml
+  ansible.builtin.include_tasks: site.yml
   with_items: '{{ sites }}'
   loop_control:
     loop_var: onesite
-  when: '(not "backend" in onesite) and not nginx_sites_done | default(False) and ( mysite == "" or mysite == onesite.id )'
+  when: '(not "backend" in onesite) and not nginx_sites_done | default(false) and ( mysite == "" or mysite == onesite.id )'
   tags: nginx, sites
 
 - name: monitor tmp var
-  set_fact:
+  ansible.builtin.set_fact:
     tmpmon:
       - proto: http
         name: '{{ ansible_fqdn }}'
@@ -166,10 +166,10 @@
         type: nginx_status
 
 - name: register to_monitor
-  set_fact:
+  ansible.builtin.set_fact:
     to_monitor: '{{ to_monitor | default([]) | union(tmpmon) }}'
     cacheable: yes
 
 - name: debug monitor
-  debug:
+  ansible.builtin.debug:
     var: to_monitor

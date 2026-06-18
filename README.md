@@ -71,7 +71,7 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
         tls_cert: files/tls/mycert.crt
         tls_key: files/tls/private/mycert.key
         # we want all http redirected to https:
-        tls_redir: True
+        tls_redir: true
         # activate stapling
         x509_stapling_chain: files/tls/stapling.pem
         # this will load-balance, with sticky sessions by default (site.conf.j2)
@@ -125,13 +125,13 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
   nginx will log errors there
 * `nginx_syslog_facility (local5)`:
 * `nginx_access_syslog_facility (local4)`:
-* `do_local_log (True)`:
+* `do_local_log (true)`:
   keep logs locally
 * `do_local_access_log (do_local_log)`;
   keeps access log locally
-* `do_http2 (False)`
+* `do_http2 (false)`
   activate http2 when using tls
-* `do_http3 (False)`
+* `do_http3 (false)`
   enable quic with tls
 * `mysite ('')`:
   if defined, will only process this `site.id`
@@ -146,8 +146,8 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
   use tcp_nopush (you want it with sendfile for zero-copy)
 * `nginx_tcp_nodelay (on)`
   use tcp_nodelay (do not wait for tcp packets to be filled)
-* `nginx_create_rootdir (True)`
-  Can be set to `False` if you need to create rootdir elsewhere
+* `nginx_create_rootdir (true)`
+  Can be set to `false` if you need to create rootdir elsewhere
 * `nginx_resolvers ({{ ansible_dns.nameservers }})`
   List of DNS resolver
 
@@ -158,7 +158,7 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
   - HTTPS accelerator included via X-Forwarded-Proto header
   - original client IP kept via realip module
   Can be overriden per site
-* `only_proxified (False)`
+* `only_proxified (false)`
   In case you want to disallow direct access
 
 ### per-site variables (site.X)
@@ -199,10 +199,10 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
 
 * `hsts` (31536000 if `x509_cert`, else 0)
   if > 0, add Strict-Transport-Security header
-* `tls_redir` (False)
-  if True, redirect all http requests to https
-* `tls_only` (True if tls_key defined)
-  if set to False, listen http AND https
+* `tls_redir` (false)
+  if true, redirect all http requests to https
+* `tls_only` (true if tls_key defined)
+  if set to false, listen http AND https
 * `tls_cert` (NODEFAULT)
   x509 certificate (with intermediate certs)
 * `tls_key` (NODEFAULT)

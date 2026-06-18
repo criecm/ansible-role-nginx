@@ -1,13 +1,13 @@
 ---
 - name: list installed modules
-  shell: 'ls {{ nginx_mods_path }} | sed "s/\.so$//"'
-  check_mode: False
-  changed_when: False
+  ansible.builtin.shell: 'ls {{ nginx_mods_path }} | sed "s/\.so$//"'
+  check_mode: false
+  changed_when: false
   register: lsmods
   tags: nginx, config
 
 - name: nginx modules to load
-  template:
+  ansible.builtin.template:
     dest: '{{ nginx_etcdir }}/modules.d/load_{{ module }}.conf'
     src: module.conf.j2
     mode: '0640'

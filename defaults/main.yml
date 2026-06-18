@@ -5,9 +5,9 @@ nginx_processes: 1
 error_loglevel: 'info'
 www_default_root: '/var/www/default'
 nginx_log_dir: '/var/log/nginx'
-do_tls: False
-do_http2: False
-do_http3: False
+do_tls: false
+do_http2: false
+do_http3: false
 nginx_status_path: /nginx_status
 nginx_includes: []
 nginx_files: []
@@ -35,11 +35,11 @@ nginx_debian_package: nginx
 nginx_syslog_facility: local5
 nginx_access_syslog_facility: local4
 
-do_local_log: True
+do_local_log: true
 
 mysite: ''
 
-nginx_syslog_server: '{% if syslog_server | default(False) %}{{ syslog_server }}{% endif %}'
+nginx_syslog_server: '{% if syslog_server | default(false) %}{{ syslog_server }}{% endif %}'
 
 # https://thoughts.t37.net/optimisations-nginx-bien-comprendre-sendfile-tcp-nodelay-et-tcp-nopush-2ab3f33432ca
 nginx_sendfile: 'off'
@@ -49,6 +49,6 @@ nginx_tcp_nodelay: 'on'
 
 etcprefix: ''
 
-nginx_create_rootdir: True
+nginx_create_rootdir: true
 
 nginx_resolvers: '{{ ansible_dns.nameservers }}'

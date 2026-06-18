@@ -1,13 +1,13 @@
 ---
 - name: list installed modules
-  shell: 'ls {{ nginx_mods_path }} | sed "s/\.so$//"'
-  check_mode: False
-  changed_when: False
+  ansible.builtin.shell: 'ls {{ nginx_mods_path }} | sed "s/\.so$//"'
+  check_mode: false
+  changed_when: false
   register: lsmods
   tags: nginx, config
 
 - name: nginx modules to install
-  apt:
+  ansible.builtin.apt:
     name: '{{ module | regex_replace("ngx_","libnginx-") | regex_replace("_","-") }}'
     state: present
   with_items: '{{ nginx_modules }}'

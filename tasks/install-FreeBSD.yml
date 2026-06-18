@@ -1,24 +1,24 @@
 ---
 - name: install nginx
-  pkgng:
+  ansible.builtin.package:
     name: nginx
     state: present
 
 - name: enable nginx
-  lineinfile:
+  ansible.builtin.lineinfile:
     dest: /etc/rc.conf
     line: 'nginx_enable="YES"'
     regexp: '^nginx_enable'
     state: present
 
 - name: newsyslog.conf.d dir
-  file:
+  ansible.builtin.file:
     dest: '{{ etcprefix }}/etc/newsyslog.conf.d'
     state: directory
   when: do_local_log
 
 - name: freebsd newsyslog
-  template:
+  ansible.builtin.template:
     src: newsyslog_nginx.conf.j2
     dest: '{{ etcprefix }}/etc/newsyslog.conf.d/nginx.conf'
   when: do_local_log

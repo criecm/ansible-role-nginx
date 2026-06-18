@@ -7,9 +7,9 @@
 #     vhost: '{{  site }}'
 
 - name: OS vars
-  include_vars: '{{ ansible_os_family }}.yml'
+  ansible.builtin.include_vars: '{{ ansible_os_family }}.yml'
 
 - name: site tasks
-  include_tasks: site.yml
+  ansible.builtin.include_tasks: site.yml
   vars:
     onesite: '{{ vhost }}'
