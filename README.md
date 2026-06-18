@@ -136,8 +136,8 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
 * `mysite ('')`:
   if defined, will only process this `site.id`
   (use `ansible-playbook ... -e mysite=thisone` where `thisone` is your site's `id`)
-* `nginx_default_site ('default')`
-  set it to '' to prevent default site to be installed
+* `nginx_default_site ('none')`
+  set it to 'default' have a default vhost pointing to `www_default_root`
 * `nginx_aio (off)`
   use aio (asynchronous file I/O (AIO) on FreeBSD and Linux) - for big files
 * `nginx_sendfile (on)`
