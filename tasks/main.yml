@@ -2,7 +2,7 @@
 - name: OS vars
   ansible.builtin.include_vars: '{{ item }}'
   with_first_found:
-    - '{{ ansible_os_family }}.yml'
+    - '{{ ansible_facts["os_family"] }}.yml'
   tags: vars, nginx
 
 - name: default confs
@@ -37,7 +37,7 @@
 - name: OS tasks
   ansible.builtin.include_tasks: '{{ item }}'
   with_first_found:
-    - 'install-{{ ansible_os_family }}.yml'
+    - 'install-{{ ansible_facts["os_family"] }}.yml'
   tags: vars, nginx
 
 # logs dir
@@ -86,7 +86,7 @@
 - name: OS modules
   ansible.builtin.include_tasks: '{{ item }}'
   with_first_found:
-    - 'mods-{{ ansible_os_family }}.yml'
+    - 'mods-{{ ansible_facts["os_family"] }}.yml'
   tags: nginx,config
 
 - name: modules.d/ confs
@@ -161,7 +161,7 @@
   ansible.builtin.set_fact:
     tmpmon:
       - proto: http
-        name: '{{ ansible_fqdn }}'
+        name: '{{ ansible_facts["fqdn"] }}'
         path: /nginx_status
         type: nginx_status
 

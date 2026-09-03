@@ -37,10 +37,10 @@ upstream {{ upstream }} {
 ## redirect http to https
 # site.tls_redir | default(false)
 server {
-{%   if ansible_all_ipv4_addresses | count > 0 %}
+{%   if ansible_facts["all_ipv4_addresses"] | count > 0 %}
 	listen *:80;
 {%   endif %}
-{%   if ansible_all_ipv6_addresses | count > 0 %}
+{%   if ansible_facts["all_ipv6_addresses"] | count > 0 %}
 	listen [::]:80;
 {%   endif %}
 

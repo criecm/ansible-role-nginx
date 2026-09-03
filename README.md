@@ -148,7 +148,7 @@ nginx web server, with one to many websites, for FreeBSD 11,12 and Debian 9,10
   use tcp_nodelay (do not wait for tcp packets to be filled)
 * `nginx_create_rootdir (true)`
   Can be set to `false` if you need to create rootdir elsewhere
-* `nginx_resolvers ({{ ansible_dns.nameservers }})`
+* `nginx_resolvers ({{ ansible_facts["dns"].nameservers }})`
   List of DNS resolver
 
 ### if behind reverse-proxy

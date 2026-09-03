@@ -51,4 +51,4 @@ etcprefix: ''
 
 nginx_create_rootdir: true
 
-nginx_resolvers: '{{ ansible_dns.nameservers }}'
+nginx_resolvers: '{{ ansible_facts["dns"].nameservers }}'
